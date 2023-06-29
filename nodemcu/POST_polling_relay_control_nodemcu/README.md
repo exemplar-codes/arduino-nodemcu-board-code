@@ -4,3 +4,5 @@
 4. Now set the switch value from any device in your wifi network.
    1. Toggle switch - visit `http://192.168.x.y:3000/toggle`. Fill in `x` and `y` to match server device's IP address.
    2. Get current switch value - visit `http://192.168.x.y:3000/toggle`.
+
+How I use it - I use my mobile to toggle the switch. I'm planning to make a small React Native app to do this (since opening the browser and writing the URL is a pain)
