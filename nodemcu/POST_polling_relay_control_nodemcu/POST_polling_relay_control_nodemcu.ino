@@ -3,8 +3,8 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 
-const char *ssid = "yourSSID";
-const char *password = "yourPassword";
+const char *ssid = "Ahmar";
+const char *password = "808@4443022";
 
 void WIFI_setup()
 {
@@ -39,7 +39,7 @@ bool getValueFromWifi() // i.e. server
       String payload = http.getString(); // Get the request response payload
       Serial.println(payload);           // Print the response payload
 
-      if (payload == "true")
+      if (payload == "true" || payload = "on")
         serverSwitchState = true;
     }
     else
@@ -72,6 +72,8 @@ void loop()
   bool freshServerSwitchState = getValueFromWifi();
   if (freshServerSwitchState == lastServerSwitchState)
     return; // do nothing
+
+  lastServerSwitchState = freshServerSwitchState; // update board value
 
   // // turn OFF the relay
   // // and wait
