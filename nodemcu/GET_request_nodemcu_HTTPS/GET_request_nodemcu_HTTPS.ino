@@ -2,8 +2,8 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>  // Use WiFiClientSecure for HTTPS requests
 
-const char* ssid = "Ahmar";
-const char* password = "808@4443022";
+const char* ssid = "yourSSID";
+const char* password = "yourPassword";
 
 void setup() {
   Serial.begin(115200);

@@ -3,8 +3,8 @@
 #include <WiFiClient.h>
 
 
-const char* ssid = "Ahmar";
-const char* password = "808@4443022";
+const char* ssid = "yourSSID";
+const char* password = "yourPassword";
 
 void setup () {
 
