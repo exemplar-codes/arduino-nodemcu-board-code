@@ -20,7 +20,7 @@ void loop() {
     WiFiClientSecure wifiClient;  // Use WiFiClientSecure for HTTPS requests
 
     HTTPClient http;
-    http.begin(wifiClient, "http://jsonplaceholder.typicode.com/users/1");
+    http.begin(wifiClient, "https://api.github.com/users/sanjarcode");
 
     // Trust the SSL certificate (needed for HTTPS requests)
     wifiClient.setInsecure();
