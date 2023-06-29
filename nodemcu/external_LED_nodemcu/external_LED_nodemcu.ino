@@ -1,12 +1,8 @@
-// NodeMCU has two controllable onboard LEDS
+// NodeMCU has fucked up label and GPIO numbering
+// D1 pin's value is 5
 
-// Onboard LED number 1 - at far side of microusb port is called `LED_BUILTIN` (predefined alias, value is `2`)
-// Onboard LED number 2 - near the microusb port is called `D0` (predefined alias), value is `16`)
-
-// Note: the LED are
-
-// #define LED_BUILTIN D0  // Led in NodeMCU at pin GPIO16 (D0).
 #define EXTERNAL_LED 5
+
 void setup() {
   pinMode(EXTERNAL_LED, OUTPUT);  // LED pin as output.
 }
