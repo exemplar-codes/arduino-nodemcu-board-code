@@ -45,6 +45,7 @@ bool getValueFromWifi() // i.e. server
     else
     {
       Serial.println("Error. Http code: " + httpCode);
+      serverSwitchState = false; // TURN OFF if communication is not possible
     }
 
     http.end(); // Close connection
