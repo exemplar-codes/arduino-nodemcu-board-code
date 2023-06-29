@@ -39,7 +39,7 @@ bool getValueFromWifi() // i.e. server
       String payload = http.getString(); // Get the request response payload
       Serial.println(payload);           // Print the response payload
 
-      if (payload == "true" || payload = "on")
+      if (payload == "true" || payload == "on")
         serverSwitchState = true;
     }
     else

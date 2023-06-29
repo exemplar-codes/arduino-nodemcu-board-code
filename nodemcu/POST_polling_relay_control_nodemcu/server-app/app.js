@@ -11,7 +11,13 @@ app.get("/", (req, res) => {
 
 app.get("/toggle", (req, res) => {
   switchValue = !switchValue;
-  res.send(JSON.stringify({ message: `Switch value is ${switchValue} now` }));
+  res.send(
+    JSON.stringify({
+      message: `Switch state changed to: ${switchValue} (${
+        switchValue ? "on" : "off"
+      })`,
+    })
+  );
 });
 
 app.use("*", (req, res) => {
