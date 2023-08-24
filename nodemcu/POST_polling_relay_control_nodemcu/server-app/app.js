@@ -6,18 +6,20 @@ const port = process.env.PORT || 3000;
 let switchValue = true;
 
 app.get("/", (req, res) => {
-  res.send(JSON.stringify(switchValue));
+  const message = `Switch state is: ${switchValue} (${
+    switchValue ? "on" : "off"
+  })`;
+  console.log("GET /", { message });
+  res.send(JSON.stringify({ message }));
 });
 
 app.get("/toggle", (req, res) => {
   switchValue = !switchValue;
-  res.send(
-    JSON.stringify({
-      message: `Switch state changed to: ${switchValue} (${
-        switchValue ? "on" : "off"
-      })`,
-    })
-  );
+  const message = `Switch state changed to: ${switchValue} (${
+    switchValue ? "on" : "off"
+  })`;
+  console.log(message);
+  res.send(JSON.stringify({ message }));
 });
 
 app.use("*", (req, res) => {
