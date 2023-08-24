@@ -81,7 +81,8 @@ void findServerInNetwork() {
 // serverUrl is discovered
 // server discovery END
 
-int TRIES_WITHOUT_REDISCOVERY = 200;
+int TRIES_BEFORE_REDISCOVERY = 20; // 10 seconds
+int tries_left = TRIES_BEFORE_REDISCOVERY;
 bool getValueFromWifi() // i.e. server
 {
   bool serverSwitchState = false;
@@ -108,11 +109,20 @@ bool getValueFromWifi() // i.e. server
 
       if (payload == "true" || payload == "on")
         serverSwitchState = true;
+
+      tries_left = TRIES_BEFORE_REDISCOVERY; // success, scope of discovery is less.
     }
     else
     {
       Serial.println("Error. Http code: " + httpCode);
       serverSwitchState = false; // TURN OFF if communication is not possible
+
+      tries_left--; // fail once
+
+      if(tries_left == 0)
+      {
+        findServerInNetwork();
+      }
     }
 
     http.end(); // Close connection
@@ -132,7 +142,6 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
   WIFI_setup();
-  findServerInNetwork();
   lastServerSwitchState = getValueFromWifi();
 }
 
