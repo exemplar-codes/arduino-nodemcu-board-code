@@ -17,10 +17,10 @@ void WIFI_setup()
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
-    Serial.print("Attempting wifi connection...");
+    Serial.println("Attempting wifi connection...");
   }
 
-  Serial.print("Connected to WiFi!");
+  Serial.println("Connected to WiFi!");
 }
 
 // server discovery START
@@ -28,7 +28,7 @@ char serverUrl[100]; // address of working server
 
 // forEach with each URL 'http://192.168.0.100:4000'
 // runs a function for each
-void cycleThroughURLs(void (*CallbackFunction)(char *), const char *baseURL, const char *port, int initialIP, int numVariations) {
+void cycleThroughURLs(bool (*CallbackFunction)(char *), const char *baseURL, const char *port, int initialIP, int numVariations) {
     if (baseURL == NULL) baseURL = "http://192.168.0.";
     if (port == NULL) port = ":4000";
     if (initialIP == 0) initialIP = 100;
@@ -39,7 +39,11 @@ void cycleThroughURLs(void (*CallbackFunction)(char *), const char *baseURL, con
         sprintf(generatedURL, "%s%d%s", baseURL, initialIP + i, port);
 
         if (CallbackFunction != NULL) {
-            CallbackFunction(generatedURL);
+            bool success = CallbackFunction(generatedURL);
+            if(success) {
+              Serial.println("Server found, ending discovery.");
+              return;
+            } // return if server found
         } else {
             Serial.println(generatedURL);
         }
@@ -54,16 +58,16 @@ int checkIfURLIsLive(char *url) {
 
   http.begin(wifiClient, url);
   int httpCode = http.GET();
-  Serial.println("Pinged URL: ");
-  Serial.println(url);
-  Serial.println(", result: ");
+  Serial.print("Ping potential server at: ");
+  Serial.print(url);
+  Serial.print(", result (httpCode): ");
   Serial.println(httpCode);
 
   return httpCode >= 200 && httpCode < 300;
 }
 
 // mutates global 'serverUrl' variable, if condition is met (device responds fine)
-void setFoundServerURL(char *url) {
+bool setFoundServerURL(char *url) {
     int foundServer = checkIfURLIsLive(url); // http
     if(foundServer)
     {
@@ -71,10 +75,13 @@ void setFoundServerURL(char *url) {
         Serial.println("Found server URL: ");
         Serial.println(url);
     }
+
+    return foundServer; // to exit rediscovery remaining process if found
 }
 
 // main server discovery function
 void findServerInNetwork() {
+    Serial.println("Starting server discovery...");
     cycleThroughURLs(setFoundServerURL, NULL, NULL, 0, 0);
 }
 
@@ -98,7 +105,7 @@ bool getValueFromWifi() // i.e. server
     // http.begin(wifiClient, "https://api.github.com/users/sanjarcode"); // Specify request destination
     int httpCode = http.GET(); // Send the request
 
-    Serial.println("Http code: "); // test
+    Serial.print("getValueFromWifi, Http code: "); // test
     Serial.println(httpCode); // test
 
     if (httpCode > 0)
@@ -110,16 +117,22 @@ bool getValueFromWifi() // i.e. server
       if (payload == "true" || payload == "on")
         serverSwitchState = true;
 
-      tries_left = TRIES_BEFORE_REDISCOVERY; // success, scope of discovery is less.
+      if(tries_left <= 0)
+      {
+        tries_left = TRIES_BEFORE_REDISCOVERY; // success, scope of discovery is less.
+        Serial.println("Rediscovery tries reset to max value.");
+      }
     }
     else
     {
-      Serial.println("Error. Http code: " + httpCode);
+      Serial.println("getValueFromWifi error. Http code: " + httpCode);
       serverSwitchState = false; // TURN OFF if communication is not possible
 
       tries_left--; // fail once
 
-      if(tries_left == 0)
+      Serial.println("Tries left until rediscovery: " + tries_left);
+
+      if(tries_left <= 0)
       {
         findServerInNetwork();
       }
