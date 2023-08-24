@@ -27,11 +27,11 @@ void WIFI_setup()
 // server discovery START
 char serverUrl[100]; // address of working server
 
-// forEach with each URL 'http://192.168.0.100:3000'
+// forEach with each URL 'http://192.168.0.100:4000'
 // runs a function for each
 void cycleThroughURLs(void (*CallbackFunction)(char *), const char *baseURL, const char *port, int initialIP, int numVariations) {
     if (baseURL == NULL) baseURL = "http://192.168.0.";
-    if (port == NULL) port = ":3000";
+    if (port == NULL) port = ":4000";
     if (initialIP == 0) initialIP = 100;
     if (numVariations == 0) numVariations = 11;
 
