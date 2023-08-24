@@ -16,12 +16,11 @@ void WIFI_setup()
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
-
     delay(1000);
     Serial.print("Attempting wifi connection...");
-
-     Serial.print("Connected to WiFi!");
   }
+
+  Serial.print("Connected to WiFi!");
 }
 
 // server discovery START
@@ -52,14 +51,15 @@ void cycleThroughURLs(void (*CallbackFunction)(char *), const char *baseURL, con
   WiFiClient wifiClient;
   HTTPClient http; // Declare an object of class HTTPClient
 int checkIfURLIsLive(char *url) {
-    http.begin(wifiClient, url);
-    int httpCode = http.GET();
-    Serial.println("Pinged URL: ");
-    Serial.println(url);
-    Serial.println(", result: ");
-    Serial.println(httpCode);
 
-    return httpCode >= 200 && httpCode < 300;
+  http.begin(wifiClient, url);
+  int httpCode = http.GET();
+  Serial.println("Pinged URL: ");
+  Serial.println(url);
+  Serial.println(", result: ");
+  Serial.println(httpCode);
+
+  return httpCode >= 200 && httpCode < 300;
 }
 
 // mutates global 'serverUrl' variable, if condition is met (device responds fine)
@@ -81,6 +81,7 @@ void findServerInNetwork() {
 // serverUrl is discovered
 // server discovery END
 
+int TRIES_WITHOUT_REDISCOVERY = 200;
 bool getValueFromWifi() // i.e. server
 {
   bool serverSwitchState = false;
@@ -139,7 +140,10 @@ void loop()
 {
   bool freshServerSwitchState = getValueFromWifi();
   if (freshServerSwitchState == lastServerSwitchState)
+  {
+    delay(500); // prevent too frequent polling when can't find server
     return; // do nothing
+  }
 
   lastServerSwitchState = freshServerSwitchState; // update board value
 
