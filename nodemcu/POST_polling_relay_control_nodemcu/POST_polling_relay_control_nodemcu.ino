@@ -148,12 +148,14 @@ bool getValueFromWifi() // i.e. server
 // update the external PIN to the relay's value (LED should be ON if relay is ON)
 
 #define RELAY_PIN 5 // D1 pin on board
+#define RELAY_PIN_2 4 // D2 pin on board
 
 bool lastServerSwitchState = false;
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
+  pinMode(RELAY_PIN_2, OUTPUT); digitalWrite(RELAY_PIN, !true);
   WIFI_setup();
   lastServerSwitchState = getValueFromWifi();
 }
