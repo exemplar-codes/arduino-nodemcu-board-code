@@ -187,7 +187,7 @@ std::vector<bool> getValuesFromWifi() // i.e. server
         if (payloads.size() < array_length)
         { // not an array or wrong format, consider it an error
           Serial.println("Issue with parsing payload");
-          serverSwitchStates[i] = false;
+          serverSwitchStates[i] = true; // ON is the default (so that manual control may be possible)
           continue;
         }
 
