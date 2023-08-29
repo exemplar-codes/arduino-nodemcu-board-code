@@ -32,7 +32,7 @@ app.get("/toggle*", (req, res) => {
 
 app.get("/", (req, res) => {
   // send response
-  const switchValues = [switchValue, true]; // FIXME: hardcoded light
+  const switchValues = [switchValue, switchValue, false, false]; // FIXME: hardcoded light
   const respValue = JSON.stringify(switchValues);
   res.send(respValue);
 

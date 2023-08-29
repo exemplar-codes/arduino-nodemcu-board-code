@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 const char *ssid = "Ahmar";
 const char *password = "808@4443022";
@@ -183,18 +182,17 @@ std::vector<bool> getValuesFromWifi() // i.e. server
 
       // if (payload == "true" || payload == "on")
       //   serverSwitchState = true;
-      // for (int i = 0; i < array_length && i < 4; i++)
-      // {
-      //   if (payloads.size() < array_length)
-      //   { // not an array or wrong format, consider response string
-      //     // update all with the same value
-      //     serverSwitchStates[i] = true; // payload == "true" || payload == "on";
-      //     continue;
-      //   }
+      for (int i = 0; i < array_length && i < 4; i++)
+      {
+        if (payloads.size() < array_length)
+        { // not an array or wrong format, consider it an error
+          Serial.println("Issue with parsing payload");
+          serverSwitchStates[i] = false;
+          continue;
+        }
 
-      //   serverSwitchStates[i] = payloads[i];
-      // }
-      serverSwitchStates = payloads;
+        serverSwitchStates[i] = payloads[i]; // update value (happy path)
+      }
 
       if (tries_left <= 0)
       {
@@ -246,32 +244,31 @@ void setup()
   for (int i = 0; i < 4; ++i)
   {
     pinMode(RELAY_PINS[i], OUTPUT);
+    digitalWrite(RELAY_PINS[i], !false); // OFF (default)
   }
   WIFI_setup();
 
-  // Get values from WiFi
-  lastServerSwitchStates = getValuesFromWifi();
+  // find server
+  findServerInNetwork();
 }
 
 void loop()
 {
+  // Get values from WiFi
   // bool freshServerSwitchState = getValueFromWifi();
-  std::vector<bool> _ = getValuesFromWifi();
-  std::vector<bool> freshServerSwitchStates(_.size(), false);
-
-  for (size_t i = 0; i < _.size(); ++i)
-  {
-    freshServerSwitchStates[i] = _[i];
-  }
+  std::vector<bool> freshServerSwitchStates = getValuesFromWifi();
 
   // bool stateNotChanged = freshServerSwitchState == lastServerSwitchState;
-  bool stateNotChanged = false; // (freshServerSwitchStates == lastServerSwitchStates);
+  bool stateNotChanged = (freshServerSwitchStates == lastServerSwitchStates);
 
   if (stateNotChanged)
   {
+    Serial.println("State comparison: no change");
     delay(500); // prevent too frequent polling when can't find server
     return;     // do nothing
   }
+
+  Serial.println("State comparison: changed");
 
   // lastServerSwitchState = freshServerSwitchState; // update board value
   lastServerSwitchStates = freshServerSwitchStates; // update board value
@@ -289,17 +286,17 @@ void loop()
   // delay(1000);
 
   // bool relayValue_sane = !freshServerSwitchState;
-  std::vector<bool> relayValues_sane(4, false);
+  std::vector<bool> relayValues_sane(freshServerSwitchStates);
   for (int i = 0; i < 4; i++)
-    relayValues_sane[i] = !freshServerSwitchStates[i];
+    relayValues_sane[i] = !relayValues_sane[i];
   // since relay is active LOW, but I find active HIGH to be more comfortable
 
   // digitalWrite(RELAY_PIN, relayValue_sane);           // true means ON, false means OFF (sane)
   for (int i = 0; i < 4; i++)
   {
     bool value = relayValues_sane[i];
-    digitalWrite(RELAY_PINS[i], relayValues_sane[i]);
-    std::cout << "value " << i << " " << relayValues_sane[i] << std::endl;
+    digitalWrite(RELAY_PINS[i], value);
+    std::cout << "value " << i << " " << value << std::endl;
   }
 
   // digitalWrite(LED_BUILTIN, !digitalRead(RELAY_PIN)); // update as per relay value
