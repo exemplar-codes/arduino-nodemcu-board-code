@@ -10,7 +10,7 @@
 const char *ssid = "Ahmar";
 const char *password = "808@4443022";
 
-void WIFI_setup()
+void WIFI_setup() // good
 {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -28,84 +28,93 @@ char serverUrl[100]; // address of working server
 
 // forEach with each URL 'http://192.168.0.100:4000'
 // runs a function for each
-void cycleThroughURLs(bool (*CallbackFunction)(char *), const char *baseURL, const char *port, int initialIP, int numVariations) {
-    if (baseURL == NULL) baseURL = "http://192.168.0.";
-    if (port == NULL) port = ":4000";
-    if (initialIP == 0) initialIP = 100;
-    if (numVariations == 0) numVariations = 11;
+void cycleThroughURLs(bool (*CallbackFunction)(char *), const char *baseURL, const char *port, int initialIP, int numVariations)
+{
+  if (baseURL == NULL)
+    baseURL = "http://192.168.0.";
+  if (port == NULL)
+    port = ":4000";
+  if (initialIP == 0)
+    initialIP = 100;
+  if (numVariations == 0)
+    numVariations = 11;
 
-    for (int i = 0; i < numVariations; i++) {
-        char generatedURL[100]; // Adjust the size as needed
-        sprintf(generatedURL, "%s%d%s", baseURL, initialIP + i, port);
+  for (int i = 0; i < numVariations; i++)
+  {
+    char generatedURL[100]; // Adjust the size as needed
+    sprintf(generatedURL, "%s%d%s", baseURL, initialIP + i, port);
 
-        if (CallbackFunction != NULL) {
-            bool success = CallbackFunction(generatedURL);
-            if(success) {
-              Serial.println("Server found, ending discovery.");
-              return;
-            } // return if server found
-        } else {
-            Serial.println(generatedURL);
-        }
+    if (CallbackFunction != NULL)
+    {
+      bool success = CallbackFunction(generatedURL);
+      if (success)
+      {
+        Serial.println("Server found, ending discovery.");
+        return;
+      } // return if server found
     }
+    else
+    {
+      Serial.println(generatedURL);
+    }
+  }
 }
 
 // response parsing util
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
+#include <string>
+#include <vector>
 
-bool* parseBooleanArray(const char *json_string, int *array_length) {
-    // Ensure the JSON array starts with '[' and ends with ']'
-    if (json_string[0] != '[' || json_string[strlen(json_string) - 1] != ']') {
-        printf("Invalid JSON array format.\n");
-        return NULL;
-    }
+std::vector<bool> parseBooleanArray(const std::string &json_string)
+{
+  std::vector<bool> bool_array;
 
-    // Count the number of commas to determine the array length
-    *array_length = 1; // At least one element
-    for (const char *c = json_string; *c; ++c) {
-        if (*c == ',') {
-            ++(*array_length);
-        }
-    }
-
-    bool *bool_array = (bool*) malloc(*array_length * sizeof(bool));
-    if (bool_array == NULL) {
-        printf("Memory allocation failed.\n");
-        return NULL;
-    }
-
-    const char *current = json_string + 1; // Skip '['
-    for (int i = 0; i < *array_length; ++i) {
-        if (strncmp(current, "true", 4) == 0) {
-            bool_array[i] = true;
-            current += 4;
-        } else if (strncmp(current, "false", 4) == 0) {
-            bool_array[i] = false;
-            current += 5;
-        } else {
-            printf("Invalid boolean value.\n");
-            free(bool_array);
-            return NULL;
-        }
-
-        // Skip comma or whitespace
-        while (*current && (*current == ',' || *current == ' ' || *current == '\t' || *current == '\n')) {
-            ++current;
-        }
-    }
-
+  // Ensure the JSON array starts with '[' and ends with ']'
+  if (json_string.empty() || json_string[0] != '[' || json_string.back() != ']')
+  {
+    std::cout << "Invalid JSON array format." << std::endl;
     return bool_array;
-}
+  }
 
+  size_t current = 1; // Skip '['
+  while (current < json_string.size() - 1)
+  {
+    if (json_string.compare(current, 4, "true") == 0)
+    {
+      bool_array.push_back(true);
+      current += 4;
+    }
+    else if (json_string.compare(current, 5, "false") == 0)
+    {
+      bool_array.push_back(false);
+      current += 5;
+    }
+    else
+    {
+      std::cout << "Invalid boolean value." << std::endl;
+      return bool_array;
+    }
+
+    // Skip comma or whitespace
+    while (current < json_string.size() - 1 &&
+           (json_string[current] == ',' ||
+            json_string[current] == ' ' ||
+            json_string[current] == '\t' ||
+            json_string[current] == '\n'))
+    {
+      ++current;
+    }
+  }
+
+  return bool_array;
+}
 
 // checks if device at URL is active
 
 WiFiClient wifiClient;
 HTTPClient http; // Declare an object of class HTTPClient
-int checkIfURLIsLive(char *url) {
+int checkIfURLIsLive(char *url)
+{
 
   http.begin(wifiClient, url);
   int httpCode = http.GET();
@@ -118,22 +127,24 @@ int checkIfURLIsLive(char *url) {
 }
 
 // mutates global 'serverUrl' variable, if condition is met (device responds fine)
-bool setFoundServerURL(char *url) {
-    int foundServer = checkIfURLIsLive(url); // http
-    if(foundServer)
-    {
-        strcpy(serverUrl, url);
-        Serial.println("Found server URL: ");
-        Serial.println(url);
-    }
+bool setFoundServerURL(char *url)
+{
+  int foundServer = checkIfURLIsLive(url); // http
+  if (foundServer)
+  {
+    strcpy(serverUrl, url);
+    Serial.println("Found server URL: ");
+    Serial.println(url);
+  }
 
-    return foundServer; // to exit rediscovery remaining process if found
+  return foundServer; // to exit rediscovery remaining process if found
 }
 
 // main server discovery function
-void findServerInNetwork() {
-    Serial.println("Starting server discovery...");
-    cycleThroughURLs(setFoundServerURL, NULL, NULL, 0, 0);
+void findServerInNetwork()
+{
+  Serial.println("Starting server discovery...");
+  cycleThroughURLs(setFoundServerURL, NULL, NULL, 0, 0);
 }
 
 // serverUrl is discovered
@@ -141,10 +152,10 @@ void findServerInNetwork() {
 
 int TRIES_BEFORE_REDISCOVERY = 20; // 10 seconds
 int tries_left = TRIES_BEFORE_REDISCOVERY;
-bool* getValuesFromWifi() // i.e. server
+std::vector<bool> getValuesFromWifi() // i.e. server
 {
   // bool serverSwitchState = false;
-  bool serverSwitchStates[4] = {false, false, false, false};
+  std::vector<bool> serverSwitchStates(4, false);
 
   if (WiFi.status() == WL_CONNECTED)
   { // Check WiFi connection status
@@ -158,51 +169,52 @@ bool* getValuesFromWifi() // i.e. server
     int httpCode = http.GET(); // Send the request
 
     Serial.print("getValueFromWifi, Http code: "); // test
-    Serial.println(httpCode); // test
+    Serial.println(httpCode);                      // test
 
     if (httpCode > 0)
     { // Check the returning code
 
-      // String payload = http.getString(); // Get the request response payload
-      // Serial.print("received payload: "); // Print the response payload
-      // Serial.println(payload);
+      String payload = http.getString();  // Get the request response payload
+      Serial.print("received payload: "); // Print the response payload
+      Serial.println(payload);
 
       int array_length = 4;
-      bool *payloads = NULL; //parseBooleanArray(payload.c_str(), &array_length);
+      std::vector<bool> payloads = parseBooleanArray(std::string(payload.c_str()));
 
       // if (payload == "true" || payload == "on")
       //   serverSwitchState = true;
-      for(int i = 0; i < array_length && i < 4; i++)
-      {
-        if(payloads == NULL) { // not an array or wrong format, consider response string
-          // update all with the same value
-          serverSwitchStates[i] = true;// payload == "true" || payload == "on";
-          continue;
-        }
+      // for (int i = 0; i < array_length && i < 4; i++)
+      // {
+      //   if (payloads.size() < array_length)
+      //   { // not an array or wrong format, consider response string
+      //     // update all with the same value
+      //     serverSwitchStates[i] = true; // payload == "true" || payload == "on";
+      //     continue;
+      //   }
 
-        serverSwitchStates[i] = payloads[i];
-      }
+      //   serverSwitchStates[i] = payloads[i];
+      // }
+      serverSwitchStates = payloads;
 
-      if(tries_left <= 0)
+      if (tries_left <= 0)
       {
         tries_left = TRIES_BEFORE_REDISCOVERY; // success, scope of discovery is less.
         Serial.println("Rediscovery tries reset to max value.");
       }
-
-      free(payloads);
     }
     else
     {
       Serial.println("getValueFromWifi error. Http code: " + httpCode);
 
       // serverSwitchState = false; // TURN OFF if communication is not possible
-      for(int i = 0; i < 4; i++) serverSwitchStates[i] = false;
+      for (int i = 0; i < 4; i++)
+        serverSwitchStates[i] = false;
 
       tries_left--; // fail once
 
       Serial.println("Tries left until rediscovery: " + tries_left);
 
-      if(tries_left <= 0)
+      if (tries_left <= 0)
       {
         findServerInNetwork();
       }
@@ -223,52 +235,46 @@ bool* getValuesFromWifi() // i.e. server
 #define RELAY_PIN_3 3 // D3 pin on board
 #define RELAY_PIN_4 2 // D4 pin on board
 
-int RELAY_PINS[4] = {RELAY_PIN_1, RELAY_PIN_2, RELAY_PIN_3, RELAY_PIN_4};
+std::vector<int> RELAY_PINS{RELAY_PIN_1, RELAY_PIN_2, RELAY_PIN_3, RELAY_PIN_4};
 
 // bool lastServerSwitchState = false;
-bool lastServerSwitchStates[4] = {false, false, false, false};
+std::vector<bool> lastServerSwitchStates(4, false);
 void setup()
 {
+  // Setup
   pinMode(LED_BUILTIN, OUTPUT);
-
-  // pinMode(RELAY_PIN, OUTPUT); // doesn't make sense
-
+  for (int i = 0; i < 4; ++i)
+  {
+    pinMode(RELAY_PINS[i], OUTPUT);
+  }
   WIFI_setup();
 
-  // lastServerSwitchState = getValueFromWifi();
-  {
-    bool* _ = getValuesFromWifi();
-    for (int i = 0; i < 4; ++i) {
-      lastServerSwitchStates[i] = _[i];
-    }
-    free(_);
-  }
+  // Get values from WiFi
+  lastServerSwitchStates = getValuesFromWifi();
 }
 
 void loop()
 {
   // bool freshServerSwitchState = getValueFromWifi();
-  bool freshServerSwitchStates[4] = {false, false, false, false};
-  // bool freshServerSwitchStates = getValuesFromWifi();
+  std::vector<bool> _ = getValuesFromWifi();
+  std::vector<bool> freshServerSwitchStates(_.size(), false);
+
+  for (size_t i = 0; i < _.size(); ++i)
   {
-    bool* _ = getValuesFromWifi();
-    for (int i = 0; i < 4; ++i) {
-      freshServerSwitchStates[i] = _[i];
-    }
-    free(_);
+    freshServerSwitchStates[i] = _[i];
   }
 
   // bool stateNotChanged = freshServerSwitchState == lastServerSwitchState;
-  bool stateNotChanged = memcpy(freshServerSwitchStates, lastServerSwitchStates, 4);
+  bool stateNotChanged = false; // (freshServerSwitchStates == lastServerSwitchStates);
 
   if (stateNotChanged)
   {
     delay(500); // prevent too frequent polling when can't find server
-    return; // do nothing
+    return;     // do nothing
   }
 
   // lastServerSwitchState = freshServerSwitchState; // update board value
-  memcpy(lastServerSwitchStates, freshServerSwitchStates, 4); // update board value
+  lastServerSwitchStates = freshServerSwitchStates; // update board value
 
   // // turn OFF the relay
   // // and wait
@@ -283,15 +289,21 @@ void loop()
   // delay(1000);
 
   // bool relayValue_sane = !freshServerSwitchState;
-  bool relayValues_sane[4] = {false, false, false, false};
-  for(int i = 0; i < 4; i++) relayValues_sane[i] = !freshServerSwitchStates[i];
+  std::vector<bool> relayValues_sane(4, false);
+  for (int i = 0; i < 4; i++)
+    relayValues_sane[i] = !freshServerSwitchStates[i];
   // since relay is active LOW, but I find active HIGH to be more comfortable
 
   // digitalWrite(RELAY_PIN, relayValue_sane);           // true means ON, false means OFF (sane)
-  for(int i = 0; i < 4; i++) digitalWrite(RELAY_PINS[i], relayValues_sane[i]);
+  for (int i = 0; i < 4; i++)
+  {
+    bool value = relayValues_sane[i];
+    digitalWrite(RELAY_PINS[i], relayValues_sane[i]);
+    std::cout << "value " << i << " " << relayValues_sane[i] << std::endl;
+  }
 
   // digitalWrite(LED_BUILTIN, !digitalRead(RELAY_PIN)); // update as per relay value
   // has only one LED, ignore
 
-  delay(1000);                                        // poll every 5 second
+  delay(1000); // poll every 5 second
 }

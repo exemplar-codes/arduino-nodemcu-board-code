@@ -27,18 +27,20 @@ app.get("/toggle*", (req, res) => {
   }
 
   // logg message
-  console.log(message);
+  console.log("GET /toggle*", { message }, new Date().toLocaleTimeString());
 });
 
 app.get("/", (req, res) => {
   // send response
-  res.send(switchValue);
+  const switchValues = [switchValue, true]; // FIXME: hardcoded light
+  const respValue = JSON.stringify(switchValues);
+  res.send(respValue);
 
   // create and print log
-  const message = `Switch state is: ${switchValue} (${
-    switchValue ? "on" : "off"
-  })`;
-  console.log("GET /", { message });
+  const message = `Switch states are: ${switchValues} (${switchValues.map((i) =>
+    i ? "on" : "off"
+  )})`;
+  console.log("GET /", { message }, new Date().toLocaleTimeString());
 });
 
 app.use("*", (req, res) => {
