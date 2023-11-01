@@ -1,5 +1,4 @@
 const { exec } = require("child_process");
-const fs = require("fs");
 const express = require("express");
 
 const router = express.Router();
@@ -29,16 +28,10 @@ function checkLockStatus(returnBoolean = false) {
     exec(`bash -c '${script}'`, (error, stdout) => {
       const status = stdout.trim();
       const timestamp = new Date().toUTCString();
-      const logMessage = `${timestamp}: ${status}\n`;
+      // const logMessage = `${timestamp}: ${status}\n`;
 
-      const logFile = "lock_status.log";
-      fs.appendFile(logFile, logMessage, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(status);
-        }
-      });
+      if (error) reject(error);
+      else resolve(status);
     });
   });
 }
