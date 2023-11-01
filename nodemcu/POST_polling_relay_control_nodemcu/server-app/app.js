@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const shutdownRouter = require("./shutdown");
 
 const app = express();
 app.use(cors());
@@ -85,6 +86,8 @@ app.get("/set/:switchIndex/:switchValue", (req, res) => {
   // create message
   togglePageMiddleware(req, res);
 });
+
+app.use(shutdownRouter);
 
 app.get("/all/:value", (req, res) => {
   setAll(getSwitchBooleanValue(req.params.value));
