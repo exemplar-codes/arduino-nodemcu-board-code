@@ -58,11 +58,11 @@ router.get("/locked/do", async (req, res, next) => {
       } else {
         res.json({ message: "Turn off command ran. Device shutting down" });
         // for linux
-        exec("poweroff", (err, (stdout) => console.log(err || stdout)));
+        exec("poweroff", (err, stdout) => console.log(err || stdout));
         // for mac
         exec(
           `osascript -e 'tell app "System Events" to shut down'`,
-          (err, (stdout) => console.log(err || stdout))
+          (err, stdout) => console.log(err || stdout)
         );
       }
     })
