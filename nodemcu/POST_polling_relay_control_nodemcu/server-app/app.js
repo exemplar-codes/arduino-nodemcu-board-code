@@ -68,6 +68,14 @@ function togglePageMiddleware(req, res, next) {
   return null;
 }
 
+app.get("/favicon.ico", (req, res) => res.status(204)); // turn down favicon requests
+
+// logger
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} ${JSON.stringify(req.query)}`);
+  return next();
+});
+
 app.get("/tog*/:index/:ignoreMe?", (req, res) => {
   // switchValues = switchValues.map((i) => !i); // toggle
   toggleSingleSwitch(req.params.index);
