@@ -58,10 +58,12 @@ router.get("/locked/do", async (req, res, next) => {
       } else {
         res.json({ message: "Turn off command ran. Device shutting down" });
         // for linux
-        exec("kill -9 getProblematicPids; poweroff", (err, stdout) => console.log(err || stdout));
+        exec("kill -9 $(getProblematicPids); poweroff", (err, stdout) =>
+          console.log(err || stdout)
+        );
         // for mac
         exec(
-          `kill -9 getProblematicPids; osascript -e 'tell app "System Events" to shut down'`,
+          `kill -9 $(getProblematicPids); osascript -e 'tell app "System Events" to shut down'`,
           (err, stdout) => console.log(err || stdout)
         );
       }
@@ -72,5 +74,6 @@ router.get("/locked/do", async (req, res, next) => {
       // next();
     });
 });
-
+// TODO: lock macos screen
+// osascript -e 'tell application "System Events" to keystroke "q" using {control down, command down}'
 module.exports = router;
