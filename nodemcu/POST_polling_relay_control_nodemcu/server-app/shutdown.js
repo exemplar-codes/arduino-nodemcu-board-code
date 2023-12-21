@@ -53,7 +53,8 @@ router.get("/locked/do", async (req, res, next) => {
   checkLockStatus()
     .then((argp) => {
       const locked = argp.toLowerCase().includes(" locked");
-      if (!locked) {
+      const forced = req.query.force;
+      if (!forced && !locked) {
         res.json({ message: "Device is unlocked, ignoring turn off command" });
       } else {
         const DEVICES = {
