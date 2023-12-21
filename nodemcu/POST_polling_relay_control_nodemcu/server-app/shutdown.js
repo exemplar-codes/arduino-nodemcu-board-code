@@ -56,16 +56,46 @@ router.get("/locked/do", async (req, res, next) => {
       if (!locked) {
         res.json({ message: "Device is unlocked, ignoring turn off command" });
       } else {
-        res.json({ message: "Turn off command ran. Device shutting down" });
-        // for linux
-        exec("kill -9 $(getProblematicPids); poweroff", (err, stdout) =>
-          console.log(err || stdout)
-        );
-        // for mac
+        const DEVICES = {
+          LINUX: "Linux",
+          MACOS: "Darwin",
+        };
+        const TURN_OFF_COMMANDS = {
+          [DEVICES.LINUX]: "poweroff",
+          [DEVICES.MACOS]: `osascript -e 'tell app "System Events" to shut down'`,
+        };
+        const getDeviceCommand = (device) => {
+          return TURN_OFF_COMMANDS[device || DEVICES.MACOS];
+        };
+        const naggingProcessKillCommand = `kill -9 $(PROMPT_EOL_MARK=''; pgrep -i -a 'iterm|qemu' | tr '\n' ' ');`;
+
+        // TODO, get rid of callback hell and solve the issue here
         exec(
-          `kill -9 $(getProblematicPids); osascript -e 'tell app "System Events" to shut down'`,
-          (err, stdout) => console.log(err || stdout)
+          `${naggingProcessKillCommand} ${getDeviceCommand(DEVICES.LINUX)}`
+          // (err, stdout) => {
+          //   res.json({
+          //     message: "Turn off command ran. Device shutting down",
+          //     err,
+          //     stdout,
+          //   });
+          // }
         );
+        exec(
+          `${naggingProcessKillCommand} ${getDeviceCommand(DEVICES.MACOS)}`
+          // (err, stdout) => {
+          //   res.json({
+          //     message: "Turn off command ran. Device shutting down",
+          //     err,
+          //     stdout,
+          //   });
+          // }
+        );
+
+        res.json({
+          message: "Turn off command ran. Device shutting down",
+          // err,
+          // stdout,
+        });
       }
     })
     .catch((argp) => {
