@@ -2,7 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
-#include <EEPROM.h>
+#include <ESP_EEPROM.h> // Search 'ESP_EEPROM' and install in Arduino IDE. https://github.com/jwrw/ESP_EEPROM
 
 #include <stdio.h>
 #include <string.h>
@@ -157,7 +157,10 @@ std::vector<bool> getValuesEEPROM(int n = 4)
   for (int i = 0; i < n; i++)
   {
     int address = (i * sizeof(values[i])) / 8;
-    values[i] = EEPROM.read(address); // update board value
+    // stupid library gotcha (needs new variables)
+    bool newValue;
+    EEPROM.get(address, newValue);
+    values[i] = newValue;
     Serial.print("EEPROM ");
     Serial.print(i);
     Serial.print(": ");
@@ -173,7 +176,9 @@ void setValuesEEPROM(std::vector<bool> values, int n = 4)
   for (int i = 0; i < n; i++)
   {
     int address = (i * sizeof(values[i])) / 8;
-    EEPROM.write(address, values[i]); // update board value
+    // stupid library gotcha (needs new variables)
+    bool newValue = values[i];
+    EEPROM.put(address, newValue);
     Serial.print("Wrote to: ");
     Serial.print(address);
     Serial.print(", value: ");
@@ -282,6 +287,7 @@ void setup()
     digitalWrite(RELAY_PINS[i], !false); // OFF (default)
   }
   WIFI_setup();
+  EEPROM.begin(16);
   lastServerSwitchStates = getValuesEEPROM();
 
   // find server
@@ -313,6 +319,8 @@ void loop()
     setValuesEEPROM(freshServerSwitchStates);
   }
 
+  lastServerSwitchStates = getValuesEEPROM();
+
   // // turn OFF the relay
   // // and wait
   // digitalWrite(RELAY_PIN, LOW);
@@ -326,7 +334,7 @@ void loop()
   // delay(1000);
 
   // bool relayValue_sane = !freshServerSwitchState;
-  std::vector<bool> relayValues_sane(freshServerSwitchStates);
+  std::vector<bool> relayValues_sane(lastServerSwitchStates);
   for (int i = 0; i < 4; i++)
     relayValues_sane[i] = !relayValues_sane[i];
   // since relay is active LOW, but I find active HIGH to be more comfortable
