@@ -173,7 +173,7 @@ void setValuesEEPROM(std::vector<bool> values, int n = 4)
   for (int i = 0; i < n; i++)
   {
     int address = (i * sizeof(values[i])) / 8;
-    EEPROM.write(values[i], address); // update board value
+    EEPROM.write(address, values[i]); // update board value
     Serial.print("Wrote to: ");
     Serial.print(address);
     Serial.print(", value: ");
