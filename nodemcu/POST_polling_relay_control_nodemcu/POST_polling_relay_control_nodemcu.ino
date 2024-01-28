@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
+#include <EEPROM.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -149,8 +150,42 @@ void findServerInNetwork()
 // serverUrl is discovered
 // server discovery END
 
+// EEPROM START
+std::vector<bool> getValuesEEPROM(int n = 4)
+{
+  std::vector<bool> values(n, false);
+  for (int i = 0; i < n; i++)
+  {
+    int address = (i * sizeof(values[i])) / 8;
+    values[i] = EEPROM.read(address); // update board value
+    Serial.print("EEPROM ");
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.print(values[i]);
+    Serial.print(", address: ");
+    Serial.println(address);
+  }
+  return values;
+}
+
+void setValuesEEPROM(std::vector<bool> values, int n = 4)
+{
+  for (int i = 0; i < n; i++)
+  {
+    int address = (i * sizeof(values[i])) / 8;
+    EEPROM.write(values[i], address); // update board value
+    Serial.print("Wrote to: ");
+    Serial.print(address);
+    Serial.print(", value: ");
+    Serial.println(values[i]);
+  }
+  EEPROM.commit();
+}
+// EEPROM END
+
 int TRIES_BEFORE_REDISCOVERY = 20; // 10 seconds
 int tries_left = TRIES_BEFORE_REDISCOVERY;
+int httpCode;
 std::vector<bool> getValuesFromWifi() // i.e. server
 {
   // bool serverSwitchState = false;
@@ -165,7 +200,7 @@ std::vector<bool> getValuesFromWifi() // i.e. server
     http.begin(wifiClient, serverUrl); // Specify request destination
     // http.begin(wifiClient, "http://jsonplaceholder.typicode.com/users/1"); // Specify request destination
     // http.begin(wifiClient, "https://api.github.com/users/sanjarcode"); // Specify request destination
-    int httpCode = http.GET(); // Send the request
+    httpCode = http.GET(); // Send the request
 
     Serial.print("getValueFromWifi, Http code: "); // test
     Serial.println(httpCode);                      // test
@@ -247,6 +282,7 @@ void setup()
     digitalWrite(RELAY_PINS[i], !false); // OFF (default)
   }
   WIFI_setup();
+  lastServerSwitchStates = getValuesEEPROM();
 
   // find server
   findServerInNetwork();
@@ -254,11 +290,12 @@ void setup()
 
 void loop()
 {
+  lastServerSwitchStates = getValuesEEPROM();
+
   // Get values from WiFi
   // bool freshServerSwitchState = getValueFromWifi();
   std::vector<bool> freshServerSwitchStates = getValuesFromWifi();
-
-  // bool stateNotChanged = freshServerSwitchState == lastServerSwitchState;
+  // bool stateNotChanged = freshServerSwitchState == lastServerSwitchStates;
   bool stateNotChanged = (freshServerSwitchStates == lastServerSwitchStates);
 
   if (stateNotChanged)
@@ -271,7 +308,10 @@ void loop()
   Serial.println("State comparison: changed");
 
   // lastServerSwitchState = freshServerSwitchState; // update board value
-  lastServerSwitchStates = freshServerSwitchStates; // update board value
+  if (httpCode >= 200 && httpCode < 300)
+  {
+    setValuesEEPROM(freshServerSwitchStates);
+  }
 
   // // turn OFF the relay
   // // and wait
