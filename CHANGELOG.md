@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.3] - 2024-01-28
+## [0.3.0] - 2024-01-28
 
 ### Added
 
@@ -15,13 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Useful for pet, when I go out.
 - Accidental server closing will keep stuff running.
 
-## [0.0.2] - 2023-08-01
+## [0.2.0] - 2023-08-01
 
 ### Added
 
 - Automatic server rediscovery
 
-## [0.0.1] - 2023-07-01
+## [0.1.0] - 2023-07-01
 
 ### Added
 
