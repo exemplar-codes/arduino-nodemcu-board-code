@@ -157,7 +157,7 @@ std::vector<bool> getValuesEEPROM(int n = 4)
   for (int i = 0; i < n; i++)
   {
     int address = (i * sizeof(values[i])) / 8;
-    // stupid library gotcha (needs new variables)
+    // library gotcha (needs new variables)
     bool newValue;
     EEPROM.get(address, newValue);
     values[i] = newValue;
@@ -176,7 +176,7 @@ void setValuesEEPROM(std::vector<bool> values, int n = 4)
   for (int i = 0; i < n; i++)
   {
     int address = (i * sizeof(values[i])) / 8;
-    // stupid library gotcha (needs new variables)
+    // library gotcha (needs new variables)
     bool newValue = values[i];
     EEPROM.put(address, newValue);
     Serial.print("Wrote to: ");
