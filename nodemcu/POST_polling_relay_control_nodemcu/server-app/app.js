@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const shutdownRouter = require("./routes/shutdown");
-const browserRouter = require("./routes/browser");
+const localRouter = require("./routes/local");
 
 const app = express();
 app.use(cors());
@@ -97,7 +97,7 @@ app.get("/set/:switchIndex/:switchValue", (req, res) => {
 });
 
 app.use(shutdownRouter);
-app.use("/browser", browserRouter);
+app.use("/local", localRouter);
 
 app.get("/all/:value", (req, res) => {
   setAll(getSwitchBooleanValue(req.params.value));

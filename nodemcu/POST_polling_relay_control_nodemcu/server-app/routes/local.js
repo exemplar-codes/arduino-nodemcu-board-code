@@ -6,7 +6,7 @@ const router = express.Router();
 // const shopController = require("../controllers/shop");
 
 router.get("/ping", (req, res, next) => {
-  res.json("Pong browser");
+  res.json("Pong local");
 });
 
 module.exports = router;
