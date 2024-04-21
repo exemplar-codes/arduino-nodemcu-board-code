@@ -36,7 +36,7 @@ function checkLockStatus(returnBoolean = false) {
   });
 }
 
-router.get("/locked", async (req, res, next) => {
+router.get("/poweroff", async (req, res, next) => {
   // logLockStatus()
   checkLockStatus()
     .then((argp) => {
@@ -48,7 +48,7 @@ router.get("/locked", async (req, res, next) => {
     });
 });
 
-router.get("/locked/do", async (req, res, next) => {
+router.get("/poweroff/do", async (req, res, next) => {
   // logLockStatus()
   checkLockStatus()
     .then((argp) => {
@@ -107,4 +107,48 @@ router.get("/locked/do", async (req, res, next) => {
 });
 // TODO: lock macos screen
 // osascript -e 'tell application "System Events" to keystroke "q" using {control down, command down}'
+router.get("/lock/do", async (req, res, next) => {
+  // logLockStatus()
+
+  const DEVICES = {
+    LINUX: "Linux",
+    MACOS: "Darwin",
+  };
+  const LOCK_SCREEN_COMMANDS = {
+    [DEVICES.LINUX]:
+      "dbus-send --session --dest=org.freedesktop.PowerManagement --type=method_call --print-reply /org/freedesktop/PowerManagement org.freedesktop.PowerManagement.Suspend",
+    [DEVICES.MACOS]: `osascript -e 'tell app "System Events" to sleep'`,
+  };
+  const getDeviceCommand = (device) => {
+    return LOCK_SCREEN_COMMANDS[device || DEVICES.MACOS];
+  };
+
+  // TODO, get rid of callback hell and solve the issue here
+  exec(
+    `${getDeviceCommand(DEVICES.LINUX)}`
+    // (err, stdout) => {
+    //   res.json({
+    //     message: "Turn off command ran. Device shutting down",
+    //     err,
+    //     stdout,
+    //   });
+    // }
+  );
+  exec(
+    `${getDeviceCommand(DEVICES.MACOS)}`
+    // (err, stdout) => {
+    //   res.json({
+    //     message: "Turn off command ran. Device shutting down",
+    //     err,
+    //     stdout,
+    //   });
+    // }
+  );
+
+  res.json({
+    message: "Lock screen command ran. Locking device...",
+    // err,
+    // stdout,
+  });
+});
 module.exports = router;
